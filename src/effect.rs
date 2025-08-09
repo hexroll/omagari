@@ -5,11 +5,11 @@ use bevy_hanabi::prelude::*;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::editor_prelude::AppContext;
 use crate::helpers::*;
 use crate::modifiers::ModifierProducer;
 use crate::modifiers::RenderModifierProducer;
 use crate::modifiers::*;
-use crate::AppContext;
 
 fn ui_for_modifiers_list<T, R>(
     app: &mut AppContext,

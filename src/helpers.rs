@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_egui::*;
 
-use crate::AppContext;
+use crate::editor_prelude::AppContext;
 
 pub trait UiProvider {
     fn draw_ui(&mut self, app: &mut AppContext, ui: &mut egui::Ui, index: u64);

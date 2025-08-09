@@ -4,9 +4,9 @@ use bevy_hanabi::prelude::*;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::editor_prelude::AppContext;
 use crate::expr::*;
 use crate::helpers::*;
-use crate::AppContext;
 
 pub trait ModifierProducer<T>
 where

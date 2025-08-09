@@ -8,25 +8,16 @@ use bevy::{
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 
 use bevy_egui::{
-    egui::{self, scroll_area::ScrollBarVisibility, Layout},
     EguiContext, EguiContexts, EguiGlobalSettings, EguiPlugin, EguiPrimaryContextPass,
     PrimaryEguiContext,
+    egui::{self, Layout, scroll_area::ScrollBarVisibility},
 };
 use bevy_hanabi::prelude::*;
 use ron::ser::PrettyConfig;
 use std::fs::File;
 use std::io::Write;
 
-mod controller;
-mod effect;
-mod expr;
-mod helpers;
-mod modifiers;
-
-use crate::controller::*;
-use crate::effect::*;
-use crate::expr::*;
-use crate::helpers::*;
+use omagari::editor_prelude::*;
 
 fn main() {
     App::new()
@@ -78,13 +69,6 @@ fn setup(
     });
 }
 
-#[derive(Default)]
-struct AppContext {
-    expr_clipboard: Option<ExprWriterEditor>,
-    visible_effects: Vec<String>,
-    filename: Option<String>,
-}
-
 fn app_ui(
     mut commands: Commands,
     mut contexts: EguiContexts,
@@ -108,9 +92,9 @@ fn app_ui(
     let mut filename = res
         .context
         .filename
-        .as_ref()
-        .unwrap_or(&"".to_string())
-        .clone();
+        .clone()
+        .map(|x| x.display().to_string())
+        .unwrap_or(String::new());
 
     egui::TopBottomPanel::top("Toolbar")
         .resizable(false)
@@ -126,10 +110,6 @@ fn app_ui(
                             effects,
                             curr,
                         );
-                    }
-
-                    if ui.button("🖭 EXPORT").clicked() {
-                        export_effects_to_files(&filename, project.clone());
                     }
 
                     ui.add_space(10.0);
@@ -148,7 +128,7 @@ fn app_ui(
                     }
 
                     filename_textedit.show(ui);
-                    res.context.filename = Some(filename.clone());
+                    res.context.filename = Some(std::path::PathBuf::from(&filename));
 
                     if ui.button("🌌 NEW").clicked() {
                         res.context.filename = None;
@@ -156,13 +136,16 @@ fn app_ui(
                     }
 
                     ui.menu_button("⮉ LOAD", |ui| {
-                        for f in projects_list() {
-                            if ui.button(f.clone()).clicked() {
-                                if let Ok(project) = load_project(&f) {
-                                    commands.insert_resource(project);
-                                    res.context.filename = Some(f.clone());
-                                    ui.close_menu();
-                                }
+                        let files = rfd::FileDialog::new()
+                            .add_filter("omagari", &["omagari.ron"])
+                            .set_directory(".")
+                            .pick_file();
+
+                        if let Some(path) = files {
+                            if let Ok(project) = OmagariProject::load(&path) {
+                                commands.insert_resource(project);
+                                res.context.filename = Some(path.clone());
+                                ui.close_menu();
                             }
                         }
                     });
@@ -176,7 +159,7 @@ fn app_ui(
                         )
                         .unwrap();
 
-                        if let Ok(mut file) = File::create(filename) {
+                        if let Ok(mut file) = File::create(&filename) {
                             file.write_all(ron_string.as_bytes()).unwrap();
                         }
                     }

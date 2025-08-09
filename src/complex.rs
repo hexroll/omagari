@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io;
 use std::io::Read;
 
-use crate::controller::ExportedProject;
+use omagari::controller::ExportedProject;
 
 struct PreparedEffect {
     name: String,

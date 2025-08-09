@@ -5,8 +5,8 @@ use bevy_hanabi::prelude::*;
 use serde::Deserialize;
 use serde::Serialize;
 
+use crate::editor_prelude::AppContext;
 use crate::helpers::*;
-use crate::AppContext;
 
 pub const ALL_ATTRS: [(Attribute, &str); 39] = [
     (Attribute::ID, "ID"),
