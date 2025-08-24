@@ -8,7 +8,8 @@ use std::{
     io::{self, Read, Write},
     rc::Rc,
 };
-
+use std::fs::create_dir;
+use std::path::PathBuf;
 use crate::{effect::*, AppContext};
 
 #[derive(Resource, Serialize, Deserialize, Default)]
@@ -72,6 +73,15 @@ pub fn spawn_particle_effects(
     }
 }
 
+pub fn despawn_all_particle_effects(
+    ongoing_effects: &Query<Entity, With<ParticleEffect>>,
+    commands: &mut Commands
+){
+    for effect_entity in ongoing_effects{
+        commands.entity(effect_entity).try_despawn();
+    }
+}
+
 pub fn export_effects_to_files(filename: &str, clone: Rc<RefCell<&mut OmagariProject>>) {
     let base = filename.split('.').next().unwrap();
     let other_filename = format!("{}.hanabi.ron", base);
@@ -87,13 +97,16 @@ pub fn export_effects_to_files(filename: &str, clone: Rc<RefCell<&mut OmagariPro
     let ron_string =
         ron::ser::to_string_pretty(&to_export, PrettyConfig::new().new_line("\n".to_string()))
             .unwrap();
-    let mut file = File::create(&other_filename).unwrap();
+    let file_path = Folder::ExportedEffects.full_file_path(other_filename);
+    let mut file = File::create(file_path).unwrap();
     file.write_all(ron_string.as_bytes()).unwrap();
 }
 
 pub fn projects_list() -> Vec<String> {
     let mut files = Vec::new();
-    let entries = std::fs::read_dir(".").unwrap();
+    Folder::SavedEffects.make_folder();
+    let saved_effects_path = String::from(Folder::SavedEffects.to_path());
+    let entries = std::fs::read_dir(saved_effects_path).unwrap();
     for entry in entries {
         let entry = entry.unwrap();
         let filename = entry.file_name();
@@ -105,7 +118,8 @@ pub fn projects_list() -> Vec<String> {
 }
 
 pub fn load_project(filename: &str) -> Result<OmagariProject, io::Error> {
-    let mut file = File::open(filename)?;
+    let file_path = Folder::SavedEffects.full_file_path(String::from(filename));
+    let mut file = File::open(file_path)?;
     let mut ron_string = String::new();
     file.read_to_string(&mut ron_string)?;
     let graph: OmagariProject =
@@ -119,3 +133,31 @@ pub fn validate_project_filename(filename: &str) -> bool {
         .captures(&filename)
         .is_some()
 }
+
+
+type FolderPath = &'static str;
+pub enum Folder{
+    SavedEffects,
+    ExportedEffects,
+}
+
+impl Folder{
+    pub fn make_folder(&self) -> FolderPath{
+        let folder_path = self.to_path();
+        let _ = create_dir(String::from(folder_path));
+        folder_path
+    }
+
+    pub fn full_file_path(&self, file_name: String) -> PathBuf{
+        let folder_path = self.make_folder();
+        PathBuf::from(String::from(folder_path)).join(file_name)
+    }
+
+    pub fn to_path(&self) -> FolderPath {
+        match self{
+            Folder::SavedEffects => "saved_effects/",
+            Folder::ExportedEffects => "exported_effects/",
+        }
+    }
+}
+

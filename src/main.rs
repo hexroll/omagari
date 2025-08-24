@@ -128,6 +128,13 @@ fn app_ui(
                         );
                     }
 
+                    if ui.button("⏹ STOP").clicked() {
+                        despawn_all_particle_effects(
+                            &curr,
+                            &mut commands,
+                        );
+                    }
+
                     if ui.button("🖭 EXPORT").clicked() {
                         export_effects_to_files(&filename, project.clone());
                     }
@@ -176,7 +183,8 @@ fn app_ui(
                         )
                         .unwrap();
 
-                        if let Ok(mut file) = File::create(filename) {
+                        let file_path = Folder::SavedEffects.full_file_path(filename);
+                        if let Ok(mut file) = File::create(file_path) {
                             file.write_all(ron_string.as_bytes()).unwrap();
                         }
                     }
