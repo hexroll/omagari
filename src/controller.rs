@@ -9,24 +9,13 @@ use std::{
     rc::Rc,
 };
 
+use omagari::*;
+
 use crate::{effect::*, AppContext};
 
 #[derive(Resource, Serialize, Deserialize, Default)]
 pub struct OmagariProject {
     pub effects: Vec<EffectEditor>,
-}
-
-#[derive(Resource, Serialize, Deserialize, Default)]
-pub struct ExportedEffect {
-    pub name: String,
-    pub parent: Option<String>,
-    pub texture_index: Option<usize>,
-    pub effect_asset: EffectAsset,
-}
-
-#[derive(Resource, Serialize, Deserialize, Default)]
-pub struct ExportedProject {
-    pub effects: Vec<ExportedEffect>,
 }
 
 #[derive(Resource)]
