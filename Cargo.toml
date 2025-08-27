@@ -1,11 +1,14 @@
+# I want two separate outputs for this crate, one is the binary it currently has in main.rs
+# and the other is a lib in lib.rs. Both should have two separate dependencies and only lib.rs can
+# be used when using this as a crate
 [package]
 name = "omagari"
 version = "0.16.1"
 edition = "2024"
 
 [dependencies]
-rand = "0.9.1"
-serde = "1.0.219"
+rand = "0.8.5"
+serde = "1.0.216"
 ron = "0.8"
 bevy = { version = "0.16.1" }
 bevy_hanabi = { version = "0.16", features = ["3d", "serde"] }
